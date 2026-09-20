@@ -19,6 +19,7 @@ This repository explores and implements search architecture from scratch—trans
   - [4. Multimodal & Vision Search](#4-multimodal--vision-search-multimodal_search_clipy--describe_image_clipy)
   - [5. Retrieval-Augmented Generation (RAG)](#5-retrieval-augmented-generation-rag-augmented_generation_clipy)
   - [6. Evaluation & IR Metrics](#6-evaluation--ir-metrics-evaluation_clipy)
+  - [7. Autonomous AI Agent](#7-autonomous-ai-agent-agent_clipy)
 - [Technical Deep Dive](#-technical-deep-dive)
 - [Tech Stack](#-tech-stack)
 - [License](#-license)
@@ -349,6 +350,38 @@ Combines hybrid retrieval with LLM generation for streaming catalog interactions
   Provides natural, conversational responses for interactive chat assistants:
   ```bash
   python3 cli/augmented_generation_cli.py question "Is there any good animated movie for kids tonight?"
+  ```
+
+---
+
+### 7. Autonomous AI Agent (`agent_cli.py`)
+
+A full conversational agent that autonomously selects and executes retrieval tools, maintains multi-turn dialog memory, and answers user queries with grounded citations.
+
+#### Key Agent Features:
+* **Function Calling & Tool Dispatch**: Dynamically calls `hybrid_search`, `bm25_search`, `semantic_search`, `get_movie_details`, `multimodal_image_search`, and `cross_encode_rerank`.
+* **Multi-Turn Context Tracking**: Remembers previously retrieved movies and resolves follow-ups (e.g. *"Tell me more about the first recommendation"*).
+* **Resilient Dual Mode**: Supports full OpenRouter/OpenAI LLM function calling as well as an automatic local heuristic retrieval fallback engine if offline or if the API key is unavailable.
+
+#### Usage:
+* **Interactive Chat Session**:
+  ```bash
+  python3 cli/agent_cli.py
+  ```
+  Commands inside the chat:
+  * `/tools`: View all registered retrieval tools and signatures
+  * `/history`: Display conversation turn history
+  * `/reset`: Clear dialog context
+  * `/exit`: Quit session
+
+* **Single Query Execution**:
+  ```bash
+  python3 cli/agent_cli.py --query "recommend intense sci-fi thrillers about time loops"
+  ```
+
+* **Run Test Suite**:
+  ```bash
+  python3 tests/test_agent.py
   ```
 
 ---
