@@ -98,9 +98,11 @@ class RAGAgent:
                     timeout=45,
                 )
             except Exception as e:
-                # If API call fails (e.g. 401 unauthorized, rate limit, or model error), gracefully fall back
                 if on_thought:
-                    on_thought(f"LLM call encountered an issue ({type(e).__name__}: {e}). Switching to local retrieval engine...")
+                    if "401" in str(e):
+                        on_thought("Notice: OPENROUTER_API_KEY in .env is expired/invalid (401). Operating smoothly in local retrieval engine mode.")
+                    else:
+                        on_thought(f"LLM call issue ({type(e).__name__}). Switching to local retrieval engine...")
                 return self._run_local_fallback(
                     user_prompt,
                     on_tool_start=on_tool_start,
@@ -183,6 +185,20 @@ class RAGAgent:
         Parses user intent, executes appropriate retrieval tools, and formats grounded results.
         """
         prompt_lower = user_prompt.lower().strip()
+
+        # Check for simple greeting / conversational chit-chat
+        greetings = ["hello", "hi", "hey", "greetings", "good morning", "good evening", "مرحبا", "اهلا", "السلام عليكم", "who are you", "what can you do"]
+        if prompt_lower in greetings or any(prompt_lower == g for g in greetings):
+            greeting_resp = (
+                "👋 Hello! I am **CineBot**, your movie search concierge for Webflyx.\n\n"
+                "I can help you explore our catalog using:\n"
+                "• **Hybrid Search**: Find movies by genre, vibe, or plot (e.g., *'thrillers with twist endings'*)\n"
+                "• **Exact Search**: Look up specific titles or actors\n"
+                "• **Details**: Ask *'tell me more about the first movie'* after searching\n\n"
+                "What kind of movie are you looking for today? 🍿"
+            )
+            self.memory.add_assistant_message(content=greeting_resp)
+            return greeting_resp
 
         # Check for image search intent
         image_match = re.search(r"(?:image|poster|pic|picture)[\s:=]+([^\s]+\.(?:jpg|jpeg|png|webp))", user_prompt, re.I)
